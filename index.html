@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trace The Breach: The TechNova Incident</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1730;
+      --text:#e9eefc;
+      --muted:#aab6df;
+      --accent:#7aa2ff;
+      --good:#45d483;
+      --bad:#ff6b6b;
+      --warn:#ffc857;
+      --line:rgba(255,255,255,.12);
+      --shadow: 0 12px 30px rgba(0,0,0,.45);
+      --radius: 18px;
+      --pad: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background: radial-gradient(1000px 700px at 20% 10%, rgba(122,162,255,.25), transparent 60%),
+                  radial-gradient(900px 700px at 80% 20%, rgba(69,212,131,.18), transparent 55%),
+                  radial-gradient(1100px 700px at 50% 85%, rgba(255,200,87,.14), transparent 60%),
+                  var(--bg);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:22px;
+    }
+    .app{width:min(1100px, 100%);}
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px;
+      padding: 18px 16px 10px 16px;
+    }
+    .brand{
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .brand h1{margin:0; font-size:20px; letter-spacing:.2px;}
+    .brand p{margin:0; color:var(--muted); font-size:13px;}
+    .topbar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center;
+    }
+    .pill b{color:var(--text); font-weight:650}
+    .btn{
+      appearance:none; border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border;
+      font-weight:650;
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.09);}
+    .btn:active{transform: translateY(0px);}
+    .btn.primary{
+      border-color: rgba(122,162,255,.45);
+      background: rgba(122,162,255,.18);
+    }
+    .btn.good{border-color: rgba(69,212,131,.5); background: rgba(69,212,131,.15);}
+    .btn.bad{border-color: rgba(255,107,107,.55); background: rgba(255,107,107,.15);}
+    .btn:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap:16px;
+      padding: 8px 16px 18px 16px;
+    }
+    @media(max-width: 940px){
+      .grid{grid-template-columns:1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px var(--pad);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(0,0,0,.12);
+      border-bottom:1px solid var(--line);
+    }
+    .card .hd h2{
+      margin:0; font-size:15px; letter-spacing:.2px;
+    }
+    .card .bd{padding: var(--pad);}
+    .muted{color:var(--muted);}
+    .kpi{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .tag{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+    }
+    .tag.good{border-color: rgba(69,212,131,.45); color: rgba(69,212,131,.95); background: rgba(69,212,131,.08);}
+    .tag.warn{border-color: rgba(255,200,87,.5); color: rgba(255,200,87,.95); background: rgba(255,200,87,.08);}
+    .tag.bad{border-color: rgba(255,107,107,.55); color: rgba(255,107,107,.98); background: rgba(255,107,107,.08);}
+
+    .sceneTitle{
+      font-size:18px; margin:0 0 6px 0;
+    }
+    .sceneBody{margin:0; color:var(--muted); line-height:1.55;}
+    .divider{
+      height:1px; background: var(--line);
+      margin: 14px 0;
+    }
+
+    .options{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+
+    .evidenceGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media(max-width: 620px){
+      .evidenceGrid{grid-template-columns:1fr;}
+    }
+    .ev{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.12);
+      border-radius: 16px;
+      padding: 12px 12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background;
+      display:flex; flex-direction:column; gap:8px;
+      min-height:86px;
+    }
+    .ev:hover{transform: translateY(-1px); background: rgba(255,255,255,.07);}
+    .ev .t{font-weight:750; font-size:14px;}
+    .ev .d{color:var(--muted); font-size:12px; line-height:1.35;}
+    .ev .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:auto;}
+    .ev .meta .mini{
+      font-size:11px; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--line); color:var(--muted);
+      background: rgba(255,255,255,.04);
+    }
+    .ev.seen{border-color: rgba(122,162,255,.5);}
+
+    .mono{
+      font-family: var(--mono);
+      font-size:12.5px;
+      line-height:1.55;
+      color:#d9e2ff;
+      white-space:pre-wrap;
+    }
+    .tableWrap{
+      overflow:auto;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width: 520px;
+      background: rgba(0,0,0,.12);
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      font-size:12.5px;
+      color:#dfe7ff;
+    }
+    th{color:#f0f4ff; background: rgba(255,255,255,.05); position:sticky; top:0;}
+    tr:last-child td{border-bottom:none;}
+    .note{
+      border:1px dashed rgba(255,255,255,.25);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.04);
+    }
+    textarea{
+      width:100%;
+      min-height: 130px;
+      resize: vertical;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.15);
+      color: var(--text);
+      padding: 10px 12px;
+      outline:none;
+      font-family: var(--sans);
+      line-height:1.5;
+    }
+    textarea:focus{border-color: rgba(122,162,255,.55);}
+    .checklist{display:flex; flex-direction:column; gap:10px;}
+    .chk{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 10px;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(0,0,0,.10);
+    }
+    .chk input{margin-top:3px; transform: scale(1.1);}
+    .chk label{cursor:pointer;}
+    .small{font-size:12px; color:var(--muted);}
+    .toast{
+      position:fixed;
+      left:50%;
+      transform: translateX(-50%);
+      bottom:18px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.62);
+      border:1px solid rgba(255,255,255,.18);
+      color: var(--text);
+      font-size: 12px;
+      opacity:0;
+      pointer-events:none;
+      transition: .2s opacity, .2s transform;
+      z-index:999;
+    }
+    .toast.show{opacity:1; transform: translateX(-50%) translateY(-4px);}
+    .hr{height:1px; background: var(--line); margin: 10px 0;}
+    .score{
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: .3px;
+    }
+    .subscore{color: var(--muted); font-size: 12px;}
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <h1>Trace The Breach</h1>
+      <p>Interactive Digital Forensics Case • TechNova Incident</p>
+    </div>
+    <div class="topbar">
+      <div class="pill"><span>Evidence Viewed:</span> <b id="kViewed">0</b><span>/</span><span id="kTotal">0</span></div>
+      <div class="pill"><span>Progress:</span> <b id="kProg">0%</b></div>
+      <button class="btn" id="btnReset" title="Reset progress">Reset</button>
+      <button class="btn primary" id="btnHome" title="Back to briefing">Briefing</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Main Scene -->
+    <section class="card" id="mainCard">
+      <div class="hd">
+        <h2 id="sceneHeader">Briefing</h2>
+        <div class="kpi" id="sceneTags"></div>
+      </div>
+      <div class="bd" id="sceneBody"></div>
+    </section>
+
+    <!-- Side Panel -->
+    <aside class="card">
+      <div class="hd">
+        <h2>Investigator Notebook</h2>
+        <div class="kpi">
+          <span class="tag" id="caseClock">10 Nov 2025 • 20:00–22:00</span>
+        </div>
+      </div>
+      <div class="bd">
+        <p class="sceneBody" style="margin-bottom:10px;">
+          Mark what you’ve confirmed. Your goal is to accuse the right suspect with solid evidence.
+        </p>
+        <div class="checklist" id="notebookChecks"></div>
+
+        <div class="divider"></div>
+
+        <p class="small" style="margin:0 0 8px 0;">Your investigation notes</p>
+        <textarea id="notes" placeholder="Write quick notes: timestamps, usernames, IPs, device IDs..."></textarea>
+
+        <div class="divider"></div>
+
+        <div class="options">
+          <button class="btn" id="btnEvidence">Evidence Hub</button>
+          <button class="btn" id="btnSuspects">Suspects</button>
+          <button class="btn good" id="btnQuiz">Mini-Quiz</button>
+          <button class="btn bad" id="btnAccuse">Accuse</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="note">
+          <div class="small" style="margin-bottom:6px;">Ethics reminder</div>
+          <div class="sceneBody" style="margin:0;">
+            Don’t accuse based on feelings. In real forensics you must rely on verifiable logs and maintain chain-of-custody.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/** Trace The Breach — Single-file, offline, no external dependencies.
+ *  Works by switching "scenes" in the main card.
+ */
+
+const STORAGE_KEY = "ttb_state_v1";
+
+const DATA = {
+  case: {
+    title: "The TechNova Incident",
+    file: "ClientX_TenderProposal_Final.docx",
+    window: "10 Nov 2025, 20:00–22:00",
+    objective: "Identify who leaked the confidential tender proposal, how it was exfiltrated, and which evidence proves it."
+  },
+  suspects: [
+    {
+      id: "aisha",
+      name: "Aisha (System Administrator)",
+      role: "Sysadmin • full access • often works overtime",
+      motive: "Low motive; trusted, but has high privileges.",
+      alibi: "Claims she reviewed server health and left at 20:15.",
+      notes: "High access does not mean guilt — check logs."
+    },
+    {
+      id: "ben",
+      name: "Ben (Sales Executive)",
+      role: "Sales • client pressure • knows rival contacts",
+      motive: "High: performance pressure + possible collusion with RivalCo.",
+      alibi: "Claims he was 'offline' after 9pm.",
+      notes: "Check unusual remote access and removable media."
+    },
+    {
+      id: "chen",
+      name: "Chen (Junior IT Support)",
+      role: "IT support • limited access • previous policy warning",
+      motive: "Medium: could misuse access, but privileges are limited.",
+      alibi: "Claims he was imaging lab PCs and did not access client files.",
+      notes: "Look for evidence of privilege escalation or misuse."
+    }
+  ],
+  evidence: [
+    {
+      id: "email_alert",
+      title: "Security Email: Unusual Login Alert",
+      type: "Email",
+      difficulty: "Easy",
+      key: "vpn_external",
+      tags: ["VPN", "External IP", "Username"],
+      content: {
+        kind: "mono",
+        body:
+`From: sec-alert@technova.com
+To: it-team@technova.com
+Subject: Unusual Login Alert – VPN Access
+
+An unusual VPN login was detected.
+
+• Username: ben.sales
+• External IP: 203.112.45.17
+• Timestamp: 10 Nov 2025 21:18
+• Status: SUCCESS
+
+If this was not expected, please investigate immediately.`
+      }
+    },
+    {
+      id: "vpn_log",
+      title: "VPN / Authentication Log",
+      type: "Log",
+      difficulty: "Easy",
+      key: "vpn_log",
+      tags: ["Auth", "IP address", "Timeline"],
+      content: {
+        kind: "table",
+        columns: ["Time (10 Nov 2025)", "Username", "IP Address", "Status"],
+        rows: [
+          ["20:03", "aisha.sys", "10.1.15.22", "Success"],
+          ["20:05", "chen.it", "10.1.16.31", "Success"],
+          ["21:18", "ben.sales", "203.112.45.17", "Success"],
+          ["21:45", "guest.lab", "10.1.20.10", "Failed"]
+        ],
+        hint: "External IP + successful login is highly suspicious during off-hours."
+      }
+    },
+    {
+      id: "fileserver_log",
+      title: "File Server Access Log",
+      type: "Log",
+      difficulty: "Medium",
+      key: "download_confidential",
+      tags: ["File access", "Download", "Username"],
+      content: {
+        kind: "table",
+        columns: ["Timestamp", "Username", "File Name", "Action"],
+        rows: [
+          ["20:10", "aisha.sys", "ClientX_TenderProposal_Final.docx", "View"],
+          ["20:12", "aisha.sys", "ClientX_TenderProposal_Final.docx", "Close"],
+          ["21:19", "ben.sales", "ClientX_TenderProposal_Final.docx", "Download"],
+          ["21:20", "ben.sales", "client_list.xlsx", "View"]
+        ],
+        hint: "A download is a stronger exfiltration risk than a view."
+      }
+    },
+    {
+      id: "usb_log",
+      title: "USB / Device Mount Log",
+      type: "Device",
+      difficulty: "Medium",
+      key: "usb_mount",
+      tags: ["Removable media", "Device ID", "Laptop"],
+      content: {
+        kind: "table",
+        columns: ["Timestamp", "Machine ID", "Device ID", "Action"],
+        rows: [
+          ["21:21", "LAPTOP-BEN", "USB_1234 (Kingston 16GB)", "Mounted"],
+          ["21:35", "LAPTOP-BEN", "USB_1234 (Kingston 16GB)", "Ejected"]
+        ],
+        hint: "USB activity immediately after the confidential download is a major clue."
+      }
+    },
+    {
+      id: "chat_log",
+      title: "Internal Chat Log (Ben ↔ Alex @ RivalCo)",
+      type: "Chat",
+      difficulty: "Medium",
+      key: "intent",
+      tags: ["Motive", "Planning", "Insider threat"],
+      content: {
+        kind: "mono",
+        body:
+`[10 Nov 2025 14:02]
+Alex (RivalCo): Our team really needs to see how ClientX structures their tender...
+
+Ben: Let me see what I can do during off-hours. Keep this between us.
+
+Alex (RivalCo): Appreciate it.`
+      }
+    },
+    {
+      id: "browser_history",
+      title: "Browser History Snippet (Ben’s Laptop)",
+      type: "Browser",
+      difficulty: "Hard",
+      key: "upload",
+      tags: ["USB drive", "Upload", "Exfiltration"],
+      content: {
+        kind: "table",
+        columns: ["Time", "URL / Activity"],
+        rows: [
+          ["21:22", "file:///E:/ClientX_TenderProposal_Final.docx"],
+          ["21:40", "https://mail.rivalco.com/upload"]
+        ],
+        hint: "Opening from drive E: suggests USB usage, followed by upload site."
+      }
+    }
+  ],
+  quiz: [
+    {
+      q: "Which evidence most strongly shows remote access from outside the company?",
+      options: [
+        "File server access log (download entry)",
+        "Security email alert (external IP)",
+        "USB/device mount log",
+        "Chat log with RivalCo"
+      ],
+      answer: 1,
+      explain: "The email alert explicitly shows a successful VPN login from an external IP."
+    },
+    {
+      q: "What action indicates the confidential file likely left the server?",
+      options: [
+        "View",
+        "Close",
+        "Download",
+        "Failed login"
+      ],
+      answer: 2,
+      explain: "Download is stronger than view/close — it creates a local copy."
+    },
+    {
+      q: "Which sequence best describes the exfiltration chain in this case?",
+      options: [
+        "USB mount → VPN login → File download → Upload",
+        "VPN login → File download → USB mount → Upload",
+        "Chat log → Upload → File view → VPN login",
+        "File view → VPN login → USB eject"
+      ],
+      answer: 1,
+      explain: "The timestamps align: 21:18 VPN login → 21:19 download → 21:21 USB mount → 21:40 upload."
+    }
+  ],
+  correct: {
+    suspect: "ben",
+    method: ["VPN remote login", "Downloaded file from server", "Copied to USB drive", "Uploaded via webmail to RivalCo"],
+    mustHaveEvidence: ["email_alert", "fileserver_log", "usb_log", "browser_history"]
+  }
+};
+
+const ALL_EVIDENCE_IDS = DATA.evidence.map(e => e.id);
+
+// --- State ---
+const defaultState = () => ({
+  scene: "briefing",
+  viewed: {},
+  checks: {},
+  notes: "",
+  quiz: { done: false, score: 0, answers: [] },
+  accusation: { suspect: null, evidence: [], method: [] },
+});
+
+let state = loadState();
+
+// --- DOM ---
+const el = (id) => document.getElementById(id);
+const sceneHeader = el("sceneHeader");
+const sceneTags = el("sceneTags");
+const sceneBody = el("sceneBody");
+const kViewed = el("kViewed");
+const kTotal = el("kTotal");
+const kProg  = el("kProg");
+const toastEl = el("toast");
+const notesEl = el("notes");
+const notebookChecks = el("notebookChecks");
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  setTimeout(()=>toastEl.classList.remove("show"), 1700);
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    // Shallow migrate
+    return Object.assign(defaultState(), parsed);
+  }catch(e){
+    return defaultState();
+  }
+}
+
+function resetState(){
+  state = defaultState();
+  saveState();
+  render();
+  toast("Progress reset.");
+}
+
+function pct(n){
+  return Math.round(n*100) + "%";
+}
+
+function viewedCount(){
+  return Object.keys(state.viewed).filter(k => state.viewed[k]).length;
+}
+
+function progressRatio(){
+  // simple: evidence viewed and quiz done and accusation made
+  const ev = viewedCount() / DATA.evidence.length;
+  const q  = state.quiz.done ? 1 : 0;
+  const a  = state.accusation.suspect ? 1 : 0;
+  return Math.min(1, (ev*0.65) + (q*0.2) + (a*0.15));
+}
+
+function setTags(tags){
+  sceneTags.innerHTML = "";
+  tags.forEach(t=>{
+    const s = document.createElement("span");
+    s.className = "tag " + (t.kind||"");
+    s.textContent = t.text;
+    sceneTags.appendChild(s);
+  });
+}
+
+// Notebook checks (for learning + progress)
+const CHECKS = [
+  { id:"c_vpn", text:"I identified the suspicious VPN login (username + external IP)." },
+  { id:"c_download", text:"I found who downloaded the confidential file from the server." },
+  { id:"c_usb", text:"I confirmed removable media (USB) was used on a suspect machine." },
+  { id:"c_upload", text:"I found evidence of an upload/exfiltration path (webmail or similar)." },
+  { id:"c_timeline", text:"I reconstructed a coherent timeline of events (20:00–22:00)." }
+];
+
+function renderNotebook(){
+  notebookChecks.innerHTML = "";
+  CHECKS.forEach(c=>{
+    const wrap = document.createElement("div");
+    wrap.className = "chk";
+    const inp = document.createElement("input");
+    inp.type = "checkbox";
+    inp.id = c.id;
+    inp.checked = !!state.checks[c.id];
+    inp.addEventListener("change", ()=>{
+      state.checks[c.id] = inp.checked;
+      saveState();
+      renderHeaderKPIs();
+    });
+    const lab = document.createElement("label");
+    lab.setAttribute("for", c.id);
+    lab.innerHTML = `<div><b>${c.text}</b><div class="small">Tip: mark only if you can point to specific evidence/log lines.</div></div>`;
+    wrap.appendChild(inp);
+    wrap.appendChild(lab);
+    notebookChecks.appendChild(wrap);
+  });
+}
+
+function renderHeaderKPIs(){
+  kTotal.textContent = String(DATA.evidence.length);
+  kViewed.textContent = String(viewedCount());
+  kProg.textContent = pct(progressRatio());
+}
+
+function markViewed(eid){
+  if(!state.viewed[eid]){
+    state.viewed[eid] = true;
+    saveState();
+    renderHeaderKPIs();
+  }
+}
+
+function sceneBriefing(){
+  sceneHeader.textContent = "Briefing";
+  setTags([
+    {text:"Case: " + DATA.case.title, kind:"warn"},
+    {text:"Target file: " + DATA.case.file},
+    {text:"Window: " + DATA.case.window}
+  ]);
+  sceneBody.innerHTML = `
+    <h3 class="sceneTitle">Welcome, Investigator.</h3>
+    <p class="sceneBody">
+      TechNova Sdn. Bhd. received a complaint: a confidential tender proposal was leaked and appeared in a competitor's submission.
+      Your job is to reconstruct what happened and identify the insider.
+    </p>
+    <div class="divider"></div>
+    <div class="note">
+      <div class="small">Objective</div>
+      <p class="sceneBody" style="margin:6px 0 0 0;">
+        ${DATA.case.objective}
+      </p>
+    </div>
+    <div class="divider"></div>
+    <p class="sceneBody"><b>Start here:</b> Open the <b>Evidence Hub</b>, review artefacts, and correlate timestamps.</p>
+    <div class="options" style="margin-top:12px;">
+      <button class="btn primary" onclick="goto('evidence')">Go to Evidence Hub</button>
+      <button class="btn" onclick="goto('suspects')">View Suspects</button>
+    </div>
+  `;
+}
+
+function evidenceCard(ev){
+  const seen = !!state.viewed[ev.id];
+  return `
+    <div class="ev ${seen ? "seen": ""}" role="button" tabindex="0" onclick="openEvidence('${ev.id}')">
+      <div class="t">${ev.title}</div>
+      <div class="d">${ev.type} • Difficulty: ${ev.difficulty}</div>
+      <div class="meta">
+        ${ev.tags.map(t=>`<span class="mini">${t}</span>`).join("")}
+        ${seen ? `<span class="mini" style="border-color: rgba(122,162,255,.55); color: rgba(122,162,255,.95);">Viewed</span>` : ``}
+      </div>
+    </div>
+  `;
+}
+
+function sceneEvidenceHub(){
+  sceneHeader.textContent = "Evidence Hub";
+  setTags([
+    {text:"Open artefacts", kind:""},
+    {text:"Correlate timestamps", kind:""},
+    {text:"Avoid assumptions", kind:"warn"}
+  ]);
+
+  const html = `
+    <h3 class="sceneTitle">Choose evidence to examine</h3>
+    <p class="sceneBody">
+      Each artefact contains clues. After reading, take notes and update your checklist.
+    </p>
+    <div class="divider"></div>
+    <div class="evidenceGrid">
+      ${DATA.evidence.map(evidenceCard).join("")}
+    </div>
+    <div class="divider"></div>
+    <div class="note">
+      <div class="small">Hint</div>
+      <div class="sceneBody" style="margin:6px 0 0 0;">
+        Strong cases combine <b>access logs</b> + <b>device activity</b> + <b>exfiltration path</b>.
+      </div>
+    </div>
+  `;
+  sceneBody.innerHTML = html;
+}
+
+function renderTable(content){
+  const cols = content.columns.map(c=>`<th>${escapeHtml(c)}</th>`).join("");
+  const rows = content.rows.map(r=>{
+    return `<tr>${r.map(v=>`<td>${escapeHtml(v)}</td>`).join("")}</tr>`;
+  }).join("");
+  const hint = content.hint ? `<div class="small" style="margin-top:10px;">Hint: ${escapeHtml(content.hint)}</div>` : "";
+  return `
+    <div class="tableWrap">
+      <table>
+        <thead><tr>${cols}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${hint}
+  `;
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function openEvidence(id){
+  const ev = DATA.evidence.find(e=>e.id===id);
+  if(!ev) return;
+
+  markViewed(ev.id);
+
+  sceneHeader.textContent = "Evidence";
+  setTags([
+    {text: ev.type, kind:""},
+    {text: "Difficulty: " + ev.difficulty, kind: ev.difficulty==="Hard" ? "bad" : ev.difficulty==="Medium" ? "warn" : "good"},
+    {text: "ID: " + ev.id, kind:""}
+  ]);
+
+  const contentHtml = ev.content.kind === "mono"
+    ? `<div class="mono">${escapeHtml(ev.content.body)}</div>`
+    : renderTable(ev.content);
+
+  sceneBody.innerHTML = `
+    <h3 class="sceneTitle">${escapeHtml(ev.title)}</h3>
+    <p class="sceneBody">Review the artefact and note key facts (timestamp, account, IP/device/path).</p>
+    <div class="divider"></div>
+    ${contentHtml}
+    <div class="divider"></div>
+    <div class="options">
+      <button class="btn" onclick="goto('evidence')">Back to Hub</button>
+      <button class="btn primary" onclick="suggestChecklist('${ev.key}')">Update checklist suggestion</button>
+      <button class="btn" onclick="quickNote('${ev.id}')">Auto-add key hint to notes</button>
+    </div>
+  `;
+}
+
+function suggestChecklist(key){
+  // Map evidence->check suggestion
+  const map = {
+    vpn_external: "c_vpn",
+    vpn_log: "c_vpn",
+    download_confidential: "c_download",
+    usb_mount: "c_usb",
+    upload: "c_upload",
+    intent: null
+  };
+  const cid = map[key];
+  if(!cid){
+    toast("This artefact supports context/motive. No direct checklist item.");
+    return;
+  }
+  state.checks[cid] = true;
+  saveState();
+  renderNotebook();
+  renderHeaderKPIs();
+  toast("Checklist updated.");
+}
+
+function quickNote(eid){
+  const ev = DATA.evidence.find(e=>e.id===eid);
+  if(!ev) return;
+  const snippets = {
+    email_alert: "• 21:18: ben.sales VPN SUCCESS from external IP 203.112.45.17",
+    vpn_log: "• VPN log: 21:18 ben.sales from 203.112.45.17 (external) SUCCESS",
+    fileserver_log: "• File log: 21:19 ben.sales DOWNLOAD ClientX_TenderProposal_Final.docx",
+    usb_log: "• USB: 21:21 mounted on LAPTOP-BEN (Kingston 16GB), ejected 21:35",
+    chat_log: "• Chat shows intent: Ben promised RivalCo info during off-hours",
+    browser_history: "• Browser: 21:22 opened file from E: (USB), 21:40 visited rivalco upload"
+  };
+  const add = snippets[eid] || `• Reviewed ${ev.title}`;
+  const cur = notesEl.value.trim();
+  notesEl.value = (cur ? (cur + "\n") : "") + add;
+  state.notes = notesEl.value;
+  saveState();
+  toast("Added to notes.");
+}
+
+function sceneSuspects(){
+  sceneHeader.textContent = "Suspects";
+  setTags([
+    {text:"3 persons of interest", kind:""},
+    {text:"Correlate with logs", kind:"warn"}
+  ]);
+
+  const cards = DATA.suspects.map(s=>{
+    const chosen = state.accusation.suspect === s.id;
+    return `
+      <div class="card" style="border-radius:16px; box-shadow:none; border-color: ${chosen ? "rgba(255,200,87,.6)" : "var(--line)"};">
+        <div class="bd">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div style="font-weight:900; font-size:14px;">${escapeHtml(s.name)}</div>
+              <div class="small">${escapeHtml(s.role)}</div>
+            </div>
+            <button class="btn ${chosen ? "primary" : ""}" onclick="pickSuspect('${s.id}')">${chosen ? "Selected" : "Select"}</button>
+          </div>
+          <div class="hr"></div>
+          <div class="small"><b>Motive:</b> ${escapeHtml(s.motive)}</div>
+          <div class="small" style="margin-top:6px;"><b>Alibi:</b> ${escapeHtml(s.alibi)}</div>
+          <div class="small" style="margin-top:6px;"><b>Note:</b> ${escapeHtml(s.notes)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  sceneBody.innerHTML = `
+    <h3 class="sceneTitle">People of Interest</h3>
+    <p class="sceneBody">Pick a suspect only when logs support it.</p>
+    <div class="divider"></div>
+    <div style="display:grid; gap:12px;">
+      ${cards}
+    </div>
+    <div class="divider"></div>
+    <div class="options">
+      <button class="btn" onclick="goto('evidence')">Review Evidence</button>
+      <button class="btn bad" onclick="goto('accuse')">Proceed to Accusation</button>
+    </div>
+  `;
+}
+
+function pickSuspect(id){
+  state.accusation.suspect = id;
+  saveState();
+  toast("Suspect selected.");
+  render();
+  goto("suspects");
+}
+
+function sceneQuiz(){
+  sceneHeader.textContent = "Mini-Quiz";
+  setTags([
+    {text:"3 questions", kind:""},
+    {text:"Evidence reasoning", kind:"good"}
+  ]);
+
+  // Render quiz form
+  const qHtml = DATA.quiz.map((q, qi)=>{
+    const chosen = state.quiz.answers?.[qi];
+    return `
+      <div class="card" style="border-radius:16px; box-shadow:none;">
+        <div class="bd">
+          <div style="font-weight:850; margin-bottom:8px;">Q${qi+1}. ${escapeHtml(q.q)}</div>
+          <div style="display:grid; gap:8px;">
+            ${q.options.map((opt, oi)=>`
+              <label class="chk" style="cursor:pointer;">
+                <input type="radio" name="q${qi}" value="${oi}" ${chosen===oi ? "checked" : ""} />
+                <div>
+                  <b>${escapeHtml(opt)}</b>
+                </div>
+              </label>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const doneBanner = state.quiz.done ? `
+    <div class="note">
+      <div class="small">Completed</div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:6px;">
+        <div class="score">${state.quiz.score}/3</div>
+        <div class="subscore">You can redo anytime. Your latest score is saved.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+  ` : "";
+
+  sceneBody.innerHTML = `
+    <h3 class="sceneTitle">Check your reasoning</h3>
+    <p class="sceneBody">Answer based on the artefacts you reviewed.</p>
+    <div class="divider"></div>
+    ${doneBanner}
+    <form id="quizForm" style="display:grid; gap:12px;">
+      ${qHtml}
+      <div class="options">
+        <button class="btn good" type="submit">Submit Quiz</button>
+        <button class="btn" type="button" onclick="goto('evidence')">Back to Evidence</button>
+      </div>
+    </form>
+    <div class="divider"></div>
+    <div id="quizFeedback"></div>
+  `;
+
+  const form = document.getElementById("quizForm");
+  form.addEventListener("submit", (e)=>{
+    e.preventDefault();
+    const answers = [];
+    let score = 0;
+    DATA.quiz.forEach((q, qi)=>{
+      const picked = form.querySelector(`input[name="q${qi}"]:checked`);
+      const val = picked ? parseInt(picked.value,10) : null;
+      answers[qi] = val;
+      if(val === q.answer) score++;
+    });
+    state.quiz = { done: true, score, answers };
+    saveState();
+    renderHeaderKPIs();
+    toast("Quiz submitted.");
+
+    const fb = document.getElementById("quizFeedback");
+    fb.innerHTML = `
+      <div class="note">
+        <div class="small">Feedback</div>
+        <div style="margin-top:6px;">
+          ${DATA.quiz.map((q, qi)=>{
+            const a = answers[qi];
+            const ok = a === q.answer;
+            return `
+              <div style="margin-bottom:10px;">
+                <span class="tag ${ok ? "good":"bad"}">${ok ? "Correct":"Wrong"}</span>
+                <span class="small">Q${qi+1}: ${escapeHtml(q.explain)}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+    render(); // update banner
+  });
+}
+
+function sceneAccuse(){
+  sceneHeader.textContent = "Accusation";
+  setTags([
+    {text:"Choose suspect + evidence", kind:"warn"},
+    {text:"Be defensible", kind:""}
+  ]);
+
+  const suspectOptions = DATA.suspects.map(s=>{
+    const checked = state.accusation.suspect === s.id;
+    return `
+      <label class="chk" style="cursor:pointer;">
+        <input type="radio" name="suspect" value="${s.id}" ${checked ? "checked":""} />
+        <div>
+          <b>${escapeHtml(s.name)}</b>
+          <div class="small">${escapeHtml(s.role)}</div>
+        </div>
+      </label>
+    `;
+  }).join("");
+
+  const evidenceOptions = DATA.evidence.map(ev=>{
+    const checked = state.accusation.evidence.includes(ev.id);
+    const disabled = !state.viewed[ev.id];
+    return `
+      <label class="chk" style="cursor:${disabled ? "not-allowed" : "pointer"}; opacity:${disabled ? ".5":"1"};">
+        <input type="checkbox" name="evidence" value="${ev.id}" ${checked ? "checked":""} ${disabled ? "disabled":""}/>
+        <div>
+          <b>${escapeHtml(ev.title)}</b>
+          <div class="small">${escapeHtml(ev.type)} • ${escapeHtml(ev.difficulty)} • ${disabled ? "View it first to select" : "Selectable"}</div>
+        </div>
+      </label>
+    `;
+  }).join("");
+
+  const methodSteps = [
+    "VPN remote login",
+    "Downloaded file from server",
+    "Copied to USB drive",
+    "Uploaded via webmail to RivalCo",
+    "Printed hardcopy and photographed",
+    "Sent via Telegram"
+  ].map(step=>{
+    const checked = state.accusation.method.includes(step);
+    return `
+      <label class="chk" style="cursor:pointer;">
+        <input type="checkbox" name="method" value="${escapeHtml(step)}" ${checked ? "checked":""} />
+        <div><b>${escapeHtml(step)}</b></div>
+      </label>
+    `;
+  }).join("");
+
+  sceneBody.innerHTML = `
+    <h3 class="sceneTitle">Make your conclusion</h3>
+    <p class="sceneBody">Select the suspect, choose the key evidence (only viewed artefacts), and select the exfiltration method.</p>
+    <div class="divider"></div>
+
+    <div style="display:grid; gap:16px;">
+      <div class="card" style="border-radius:16px; box-shadow:none;">
+        <div class="bd">
+          <div style="font-weight:900; margin-bottom:8px;">1) Suspect</div>
+          <div style="display:grid; gap:8px;">${suspectOptions}</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-radius:16px; box-shadow:none;">
+        <div class="bd">
+          <div style="font-weight:900; margin-bottom:8px;">2) Evidence (pick at least 3)</div>
+          <div class="small" style="margin-bottom:8px;">Tip: choose artefacts that prove access + movement + upload.</div>
+          <div style="display:grid; gap:8px;">${evidenceOptions}</div>
+        </div>
+      </div>
+
+      <div class="card" style="border-radius:16px; box-shadow:none;">
+        <div class="bd">
+          <div style="font-weight:900; margin-bottom:8px;">3) Method</div>
+          <div style="display:grid; gap:8px;">${methodSteps}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="options">
+      <button class="btn bad" id="btnSubmitAccuse">Submit Accusation</button>
+      <button class="btn" onclick="goto('evidence')">Review Evidence</button>
+    </div>
+
+    <div class="divider"></div>
+    <div id="accuseResult"></div>
+  `;
+
+  document.getElementById("btnSubmitAccuse").addEventListener("click", ()=>{
+    const suspect = document.querySelector('input[name="suspect"]:checked')?.value || null;
+    const evidence = Array.from(document.querySelectorAll('input[name="evidence"]:checked')).map(i=>i.value);
+    const method = Array.from(document.querySelectorAll('input[name="method"]:checked')).map(i=>i.value);
+
+    state.accusation = { suspect, evidence, method };
+    saveState();
+    renderHeaderKPIs();
+
+    const res = document.getElementById("accuseResult");
+    const verdict = gradeAccusation();
+    res.innerHTML = verdict.html;
+    toast(verdict.ok ? "Case closed (correct)!" : "Conclusion submitted.");
+    render();
+  });
+}
+
+function gradeAccusation(){
+  const a = state.accusation;
+  let ok = true;
+  const problems = [];
+
+  if(!a.suspect){
+    ok = false;
+    problems.push("No suspect selected.");
+  } else if(a.suspect !== DATA.correct.suspect){
+    ok = false;
+    problems.push("Selected suspect does not match the strongest digital evidence chain.");
+  }
+
+  if(!a.evidence || a.evidence.length < 3){
+    ok = false;
+    problems.push("Select at least 3 evidence items.");
+  }
+
+  const missing = DATA.correct.mustHaveEvidence.filter(id => !a.evidence.includes(id));
+  if(missing.length){
+    ok = false;
+    problems.push("Your evidence set is missing key artefacts that prove access + exfiltration path (VPN/Download/USB/Upload).");
+  }
+
+  // method grading: must include the 4 correct steps
+  const missMethod = DATA.correct.method.filter(step => !a.method.includes(step));
+  if(missMethod.length){
+    ok = false;
+    problems.push("Your method chain is incomplete. The timeline suggests VPN → download → USB → upload.");
+  }
+
+  const summary = `
+    <div class="note">
+      <div class="small">Verdict</div>
+      <div style="margin-top:8px;">
+        <span class="tag ${ok ? "good":"bad"}" style="margin-right:8px;">${ok ? "Correct conclusion" : "Needs revision"}</span>
+        <span class="small">${ok ? "Your conclusion matches the correlated logs." : "Review the missing pieces below."}</span>
+      </div>
+      <div class="divider"></div>
+      <div class="small"><b>Your suspect:</b> ${a.suspect ? escapeHtml(a.suspect) : "-"}</div>
+      <div class="small" style="margin-top:6px;"><b>Evidence selected:</b> ${a.evidence.length}</div>
+      <div class="small" style="margin-top:6px;"><b>Method steps selected:</b> ${a.method.length}</div>
+      ${problems.length ? `<div class="divider"></div><div class="small"><b>Issues:</b><ul style="margin:6px 0 0 18px; color: var(--muted);">${problems.map(p=>`<li>${escapeHtml(p)}</li>`).join("")}</ul></div>` : ""}
+      ${ok ? `<div class="divider"></div><div class="small"><b>Recommended final write-up:</b><br/>
+        21:18 ben.sales VPN login from external IP 203.112.45.17 → 21:19 download of ClientX_TenderProposal_Final.docx →
+        21:21 USB mounted on LAPTOP-BEN → 21:40 upload to RivalCo webmail. Chat log shows intent.
+      </div>` : ""}
+    </div>
+  `;
+
+  return { ok, html: summary };
+}
+
+function goto(scene){
+  state.scene = scene;
+  saveState();
+  render();
+}
+
+function render(){
+  renderHeaderKPIs();
+  renderNotebook();
+  notesEl.value = state.notes || "";
+
+  // buttons
+  document.getElementById("btnHome").onclick = ()=>goto("briefing");
+  document.getElementById("btnEvidence").onclick = ()=>goto("evidence");
+  document.getElementById("btnSuspects").onclick = ()=>goto("suspects");
+  document.getElementById("btnQuiz").onclick = ()=>goto("quiz");
+  document.getElementById("btnAccuse").onclick = ()=>goto("accuse");
+  document.getElementById("btnReset").onclick = ()=>resetState();
+
+  // notes autosave
+  notesEl.oninput = ()=>{
+    state.notes = notesEl.value;
+    saveState();
+  };
+
+  switch(state.scene){
+    case "briefing": sceneBriefing(); break;
+    case "evidence": sceneEvidenceHub(); break;
+    case "suspects": sceneSuspects(); break;
+    case "quiz": sceneQuiz(); break;
+    case "accuse": sceneAccuse(); break;
+    default: sceneBriefing(); break;
+  }
+}
+
+// init
+render();
+
+// Accessibility: Enter key on evidence cards
+document.addEventListener("keydown", (e)=>{
+  const active = document.activeElement;
+  if(e.key === "Enter" && active && active.classList.contains("ev")){
+    active.click();
+  }
+});
+</script>
+</body>
+</html>
