@@ -11,6 +11,7 @@ The game simulates a real-world cybersecurity incident where players take on the
 This project is designed to bridge the gap between theoretical knowledge and practical application by providing a hands-on forensic investigation experience.
 
 -- Objectives --
+
 Analyse digital evidence from multiple sources
 Identify Indicators of Compromise (IoCs)
 Correlate logs and artefacts to reconstruct events
@@ -57,6 +58,7 @@ Mozilla Firefox
  No installation or internet connection required
 
 -- Gameplay Tip --
+
 Start with the Evidence Hub
 Review all artefacts carefully
 Identify patterns across logs and activities
