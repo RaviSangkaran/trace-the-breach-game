@@ -1,6 +1,6 @@
  https://ravisangkaran.github.io/trace-the-breach-game/
 
-Trace The Breach: The TechNova Incident
+==Trace The Breach: The TechNova Incident==
 Interactive Digital Forensics Investigation Game
  Overview
 
@@ -10,7 +10,7 @@ The game simulates a real-world cybersecurity incident where players take on the
 
 This project is designed to bridge the gap between theoretical knowledge and practical application by providing a hands-on forensic investigation experience.
 
- Objectives
+-- Objectives --
 Analyse digital evidence from multiple sources
 Identify Indicators of Compromise (IoCs)
 Correlate logs and artefacts to reconstruct events
@@ -26,7 +26,7 @@ Apply structured forensic methodology (Collection → Examination → Analysis �
  Fully offline browser-based gameplay (no installation required)
  Evidence Included
 
-The game provides realistic forensic artefacts such as:
+-The game provides realistic forensic artefacts such as:
 
  Phishing email
  Login / VPN logs
@@ -37,9 +37,9 @@ The game provides realistic forensic artefacts such as:
 
 Players must analyse and correlate these artefacts to uncover the full attack chain.
 
- Learning Outcomes
+-- Learning Outcomes --
 
-This game helps users develop:
+-This game helps users develop:
 
 Critical thinking and analytical reasoning
 Digital forensic investigation skills
@@ -56,7 +56,7 @@ Mozilla Firefox
 
  No installation or internet connection required
 
- Gameplay Tip
+-- Gameplay Tip --
 Start with the Evidence Hub
 Review all artefacts carefully
 Identify patterns across logs and activities
